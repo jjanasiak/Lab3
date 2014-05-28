@@ -1,0 +1,58 @@
+public class VirtualMemory 
+{
+	Odwolanie[] strony, ramki;
+	int wskaz=0, braki=0;
+	boolean[] spisWartosci;
+	
+	public class Odwolanie
+	{
+		boolean repeat = false;
+		boolean chance;
+		int cooldown = 0;
+		int indexOPT;
+		int key, wartosc;
+		
+		public Odwolanie(int w)
+		{			
+			wartosc = w;
+		}
+		
+		public void setKey(int k)
+		{
+			key = k;
+		}
+	}	
+			
+	public VirtualMemory(int N, int rr)
+	{
+		setRozmiarRamki(rr);
+		strony = new Odwolanie[N];
+		spisWartosci = new boolean[N];
+		for(int i=0; i<N; i++)
+		{			
+			strony[i] = new Odwolanie((int)(Math.random()*(N-10)));
+			spisWartosci[i] = false;
+		}
+	}
+	
+	public void setRozmiarRamki(int rr)
+	{
+		ramki = new Odwolanie[rr];
+	}
+	
+	private void brakStrony(int s, int a)
+	{
+		int i = 0;
+		while(ramki.length > i && ramki[i] != null) // szukamy pustych ramek
+			i++;
+		if(i < ramki.length) // jezeli takowe istnieja to podstaw nowe odwolanie
+		{
+			ramki[i] = strony[s]; 
+			strony[s].setKey(i);
+		}
+		else // w przeciwnym wypadku trzeba wykonac zastapienie strony w ramce
+			zastepowanieStrony(s, a); 
+		spisWartosci[strony[s].wartosc] = true; // po wykonaniu tych operacji zapisujemy nowa wartosc jako "w uzyciu"
+		braki++; // zwiekszamy liczbe brakow stron
+	}
+	
