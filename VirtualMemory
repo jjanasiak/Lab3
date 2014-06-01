@@ -54,5 +54,37 @@ public class VirtualMemory
 			zastepowanieStrony(s, a); 
 		spisWartosci[strony[s].wartosc] = true; // po wykonaniu tych operacji zapisujemy nowa wartosc jako "w uzyciu"
 		braki++; // zwiekszamy liczbe brakow stron
+		
 	}
 	
+	private void zastepowanieStrony(int s, int a)
+	{
+		algorytm(a); // wybor algorytmu
+		spisWartosci[ramki[wskaz].wartosc] = false; // ustaw wystepowanie wartosci nadpisanej (ofiary) na falszywe
+		ramki[wskaz] = strony[s]; // podstaw nowa wartosc
+		strony[s].setKey(wskaz); // zapisz indeks ramki				
+		
+		wskaz++;
+		if(wskaz >= ramki.length) wskaz = 0;
+	}
+	
+	public void FIFO() // FIFO wykonuje sie w calosci w zastepowaniu
+	{
+				
+	}
+	
+	public void OPT()
+	{
+		// jeszcze nie ma ale będzie
+	}
+	
+	public void LRU() // znajduje wskaznik, ktorego ramka ma najdluzszy cooldown (czas oczekiwania)
+	{
+		int max = 0;		
+		for(int i = 0; i<ramki.length; i++)
+			if(ramki[i].cooldown > max) // jezeli cooldown jest dluzszy
+				{
+					max = ramki[i].cooldown; // podstaw ten cooldown
+					wskaz = i; // oraz ustaw wskaz
+				}		
+	}
