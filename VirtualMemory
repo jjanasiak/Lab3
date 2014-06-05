@@ -88,3 +88,81 @@ public class VirtualMemory
 					wskaz = i; // oraz ustaw wskaz
 				}		
 	}
+	
+	public void SCh() // FIFO, ale z opcja drugiej szansy, czyli zastepuje wartosc po 2 powtorzeniu
+	{
+		if(ramki[wskaz].chance) // jezeli odwolanie ma 2 szanse
+		{
+			ramki[wskaz].chance = false; // zabierz ta szanse
+			wskaz++; // przesun sie na kolejna ramke
+			if(wskaz >= ramki.length) wskaz = 0; // w przypadku ostatniej ramki wroc sie na poczatek
+			SCh(); // jeszcze raz poszukaj odwolania bez 2 szansy
+		}	
+		// jezeli nic nie zrobi to znaczy, ze na tym wskazie odwolanie nie ma juz szansy i mozna je zastapic
+	}
+	
+	public void RAND() //totalnie randomowo wybiera ramke do nadpisania
+	{
+		wskaz = (int) Math.random()*ramki.length;
+	}
+	
+	public void wstawianie(int s, int a)
+	{
+		if(!spisWartosci[strony[s].wartosc]) // jezeli danej wartosci nie ma w ramce
+		{
+			brakStrony(s, a); // obsluz brak strony
+		}
+		else strony[s].repeat = true; // w przeciwnym wypadku zapamietaj, ze dana wartosc juz jest zapisana
+		for(int i=0; i<ramki.length; i++)
+		{
+			if(ramki[i] != null)
+				ramki[i].cooldown++; // zwieksz cooldown
+			if(ramki[i] != null && ramki[i].wartosc == strony[s].wartosc) // jezeli wartosc biezacej strony jest taka jak w ramce  
+			{
+				strony[s].setKey(i); // zapisz indeks ramki
+				ramki[i].chance = true; // daj biedakowi 2 szanse :P
+				ramki[i].cooldown = 0; // wyzeruj cooldown, bo sie koles powtorzyl
+			}
+		}
+	}
+	
+	private void algorytm(int a)
+	{
+		switch(a)
+		{
+		case 1:
+			FIFO();
+			break;
+			
+		case 2:
+			OPT();
+			break;
+			
+		case 3:
+			LRU();
+			break;
+			
+		case 4:
+			SCh();
+			break;
+			
+		case 5:
+			RAND();
+			break;
+		}				
+	}
+	
+	public void wyswietl(int t)
+	{
+		System.out.println();
+		System.out.println("Krok " + (t+1) + ":");
+		System.out.println();
+		System.out.println("Wartosc biezacej strony: " + strony[t].wartosc);
+		System.out.println("Miejsce przechowywania: Ramka " + strony[t].key);
+		System.out.print("Czy sie powtorzyl: ");		
+		if(strony[t].repeat) System.out.println("TAK");
+		else System.out.println("NIE");
+		System.out.println("Ilosc brakow stron: ---> " + braki);
+	}
+}
+
