@@ -1,1 +1,68 @@
- 
+ import java.util.*;
+
+public class tester 
+{
+	public static void main(String[] args)
+	{
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Podaj liczbe odwolan: ");
+		int s = sc.nextInt();
+		System.out.println("Podaj rozmiar ramki: ");
+		int rr = sc.nextInt();
+		VirtualMemory VM = new VirtualMemory(s, rr);
+				
+		int a;
+		do
+		{
+			System.out.println("Wybierz algorytm operacyjny: ");
+			System.out.println("1 -> FIFO");
+			System.out.println("2 -> OPT");
+			System.out.println("3 -> LRU");
+			System.out.println("4 -> SCh");
+			System.out.println("5 -> RAND");
+			a = sc.nextInt();
+		}while(a < 1 || a > 5);
+		
+		int t = 0;
+		char znak = 'n';
+		System.out.println("--INSTRUKCJA OBSLUGI--");
+		System.out.println("n - nastepny krok symulacji");
+		System.out.println("a - auto-symulowanie (do pewnego x < "+ s +")");
+		System.out.println("q - wyjscie");
+		System.out.println();
+		System.out.println("Wartosci odwolan: ");
+		System.out.println();
+		for(int i=0; i<VM.strony.length; i++)
+			System.out.print(" " + VM.strony[i].wartosc);
+		System.out.println();
+		
+		while(znak != 'q' && t < s)
+		{
+			System.out.println("Podaj rozkaz:");
+			znak = sc.next().charAt(0);
+			switch(znak)
+			{
+			case 'n':
+				VM.wstawianie(t, a);
+				VM.wyswietl(t);
+				t++;
+				break;
+				
+			case 'a':
+				System.out.println("Podaj punkt zatrzymania (x < " + s + "):");
+				int x = sc.nextInt()-1;
+				for(; t<x; t++)
+					VM.wstawianie(t, a);
+				VM.wyswietl(t);
+				t++;
+				break;
+				
+			default:
+				break;					
+			}
+		}
+		System.out.println("--KONIEC--");
+		sc.close();
+	}
+}
+
