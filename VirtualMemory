@@ -1,9 +1,10 @@
-public class VirtualMemory 
+
+public class VirtualMemory
 {
 	Odwolanie[] strony, ramki;
 	int wskaz=0, braki=0;
 	boolean[] spisWartosci;
-	
+
 	public class Odwolanie
 	{
 		boolean repeat = false;
@@ -11,35 +12,47 @@ public class VirtualMemory
 		int cooldown = 0;
 		int indexOPT;
 		int key, wartosc;
-		
+
 		public Odwolanie(int w)
-		{			
+		{
 			wartosc = w;
 		}
-		
+
 		public void setKey(int k)
 		{
 			key = k;
 		}
-	}	
-			
+	}
+
 	public VirtualMemory(int N, int rr)
 	{
 		setRozmiarRamki(rr);
 		strony = new Odwolanie[N];
 		spisWartosci = new boolean[N];
 		for(int i=0; i<N; i++)
-		{			
+		{
 			strony[i] = new Odwolanie((int)(Math.random()*(N-10)));
 			spisWartosci[i] = false;
 		}
 	}
-	
+
 	public void setRozmiarRamki(int rr)
 	{
 		ramki = new Odwolanie[rr];
 	}
-	
+
+	public VirtualMemory(int[] s, int rr)
+	{
+		setRozmiarRamki(rr);
+		strony = new Odwolanie[s.length];
+		spisWartosci = new boolean[s.length];
+		for(int i=0; i<s.length; i++)
+		{
+			strony[i] = new Odwolanie(s[i]);
+			spisWartosci[i] = false;
+		}
+	}
+
 	private void brakStrony(int s, int a)
 	{
 		int i = 0;
@@ -47,48 +60,61 @@ public class VirtualMemory
 			i++;
 		if(i < ramki.length) // jezeli takowe istnieja to podstaw nowe odwolanie
 		{
-			ramki[i] = strony[s]; 
+			ramki[i] = strony[s];
 			strony[s].setKey(i);
+			int j = s+1;
+			while(j < strony.length && strony[s].wartosc != strony[j].wartosc)
+				j++;
+			ramki[i].indexOPT = j;
 		}
 		else // w przeciwnym wypadku trzeba wykonac zastapienie strony w ramce
-			zastepowanieStrony(s, a); 
+			zastepowanieStrony(s, a);
 		spisWartosci[strony[s].wartosc] = true; // po wykonaniu tych operacji zapisujemy nowa wartosc jako "w uzyciu"
 		braki++; // zwiekszamy liczbe brakow stron
-		
 	}
-	
+
 	private void zastepowanieStrony(int s, int a)
 	{
 		algorytm(a); // wybor algorytmu
 		spisWartosci[ramki[wskaz].wartosc] = false; // ustaw wystepowanie wartosci nadpisanej (ofiary) na falszywe
 		ramki[wskaz] = strony[s]; // podstaw nowa wartosc
-		strony[s].setKey(wskaz); // zapisz indeks ramki				
-		
+		strony[s].setKey(wskaz); // zapisz indeks ramki
+		int j = s+1;
+		while(j < strony.length && strony[s].wartosc != strony[j].wartosc)
+			j++;
+		ramki[wskaz].indexOPT = j;
+
 		wskaz++;
 		if(wskaz >= ramki.length) wskaz = 0;
 	}
-	
+
 	public void FIFO() // FIFO wykonuje sie w calosci w zastepowaniu
 	{
-				
+
 	}
-	
+
 	public void OPT()
 	{
-		// jeszcze nie ma ale będzie
+		int opt = ramki[0].indexOPT;
+		for(int i = 0; i<ramki.length; i++)
+			if(ramki[i].indexOPT > opt) // jezeli nastepna powtarzajaca sie wartosc jest dalej
+				{
+					opt = ramki[i].indexOPT; // podstaw to miejsce
+					wskaz = i; // oraz ustaw wskaz
+				}
 	}
-	
+
 	public void LRU() // znajduje wskaznik, ktorego ramka ma najdluzszy cooldown (czas oczekiwania)
 	{
-		int max = 0;		
+		int max = 0;
 		for(int i = 0; i<ramki.length; i++)
 			if(ramki[i].cooldown > max) // jezeli cooldown jest dluzszy
 				{
 					max = ramki[i].cooldown; // podstaw ten cooldown
 					wskaz = i; // oraz ustaw wskaz
-				}		
+				}
 	}
-	
+
 	public void SCh() // FIFO, ale z opcja drugiej szansy, czyli zastepuje wartosc po 2 powtorzeniu
 	{
 		if(ramki[wskaz].chance) // jezeli odwolanie ma 2 szanse
@@ -97,15 +123,15 @@ public class VirtualMemory
 			wskaz++; // przesun sie na kolejna ramke
 			if(wskaz >= ramki.length) wskaz = 0; // w przypadku ostatniej ramki wroc sie na poczatek
 			SCh(); // jeszcze raz poszukaj odwolania bez 2 szansy
-		}	
+		}
 		// jezeli nic nie zrobi to znaczy, ze na tym wskazie odwolanie nie ma juz szansy i mozna je zastapic
 	}
-	
-	public void RAND() //totalnie randomowo wybiera ramke do nadpisania
+
+	public void RAND() // randomowo wybiera ramke do nadpisania
 	{
 		wskaz = (int) Math.random()*ramki.length;
 	}
-	
+
 	public void wstawianie(int s, int a)
 	{
 		if(!spisWartosci[strony[s].wartosc]) // jezeli danej wartosci nie ma w ramce
@@ -117,15 +143,19 @@ public class VirtualMemory
 		{
 			if(ramki[i] != null)
 				ramki[i].cooldown++; // zwieksz cooldown
-			if(ramki[i] != null && ramki[i].wartosc == strony[s].wartosc) // jezeli wartosc biezacej strony jest taka jak w ramce  
+			if(ramki[i] != null && ramki[i].wartosc == strony[s].wartosc) // jezeli wartosc biezacej strony jest taka jak w ramce
 			{
 				strony[s].setKey(i); // zapisz indeks ramki
 				ramki[i].chance = true; // daj biedakowi 2 szanse :P
 				ramki[i].cooldown = 0; // wyzeruj cooldown, bo sie koles powtorzyl
+				int j = s+1;
+				while(j < strony.length && strony[s].wartosc != strony[j].wartosc)
+					j++;
+				ramki[i].indexOPT = j;
 			}
 		}
 	}
-	
+
 	private void algorytm(int a)
 	{
 		switch(a)
@@ -133,25 +163,25 @@ public class VirtualMemory
 		case 1:
 			FIFO();
 			break;
-			
+
 		case 2:
 			OPT();
 			break;
-			
+
 		case 3:
 			LRU();
 			break;
-			
+
 		case 4:
 			SCh();
 			break;
-			
+
 		case 5:
 			RAND();
 			break;
-		}				
+		}
 	}
-	
+
 	public void wyswietl(int t)
 	{
 		System.out.println();
@@ -159,10 +189,9 @@ public class VirtualMemory
 		System.out.println();
 		System.out.println("Wartosc biezacej strony: " + strony[t].wartosc);
 		System.out.println("Miejsce przechowywania: Ramka " + strony[t].key);
-		System.out.print("Czy sie powtorzyl: ");		
+		System.out.print("Czy sie powtorzyl: ");
 		if(strony[t].repeat) System.out.println("TAK");
 		else System.out.println("NIE");
 		System.out.println("Ilosc brakow stron: ---> " + braki);
 	}
 }
-
